@@ -12,6 +12,7 @@ public class FreqCountIntegerSymbolModel implements SourceModel<Integer> {
 		assert symbols != null;
 		assert counts != null;
 		assert symbols.length == counts.length;
+		assert symbols.length > 1;
 		
 		_total_count = 0;
 		for (int i=0; i<symbols.length; i++) {
