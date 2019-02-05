@@ -32,11 +32,15 @@ public class FreqCountIntegerSymbolModel implements SourceModel<Integer> {
 
 	@Override
 	public Integer get(int index) {
+		assert index >= 0 && index < size();
+		
 		return _symbols[index];
 	}
 
 	@Override
 	public double cdfLow(int index) {		
+		assert index >= 0 && index < size();
+
 		int cumulative_count = 0;
 
 		for (int i=0; i < index; i++) {
