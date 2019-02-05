@@ -7,7 +7,7 @@ The text file encoder produces a file with the following format:
 * The first 256 * 32 bits are the frequency counts associated with the integer symbol values 0 to 255. 
   * Each count is a 32 bit value.
 * The next 32 bits are the number of symbols that were encoded
-* The next 8 bits is the value of range_bit_width (i.e., the size of the range registers used by the encoder)
+* The next 8 bits is the value of range\_bit\_width (i.e., the size of the range registers used by the encoder)
 * Following this are the encoded symbols.
 
 One thing to note that was just touched on at the very end of class is that when the encoding app gets to the end (i.e.,

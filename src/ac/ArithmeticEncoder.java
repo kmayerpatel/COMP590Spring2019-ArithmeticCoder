@@ -28,7 +28,7 @@ public class ArithmeticEncoder<T> {
 		_range_mask = ~(0xffffffffffffffffL << _range_bit_width);
 		
 		_one_quarter_mark = (0x1L << _range_bit_width) / 4L;
-		_three_quarter_mark = _one_quarter_mark * 3;
+		_three_quarter_mark = _one_quarter_mark * 3L;
 		
 		_pending_bits = 0;
 	}
@@ -51,6 +51,7 @@ public class ArithmeticEncoder<T> {
 				bit_sink.write(1-highBit(_low), 1);
 				_pending_bits--;
 			}
+			
 			
 			_low = (_low << 1) & _range_mask;
 			_high = ((_high << 1) & _range_mask) | 0x1L;

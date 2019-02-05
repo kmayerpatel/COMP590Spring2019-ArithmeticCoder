@@ -16,15 +16,21 @@ public class ACEncodeTextFile {
 
 		int range_bit_width = 40;
 
+		System.out.println("Encoding text file: " + input_file_name);
+		System.out.println("Output file: " + output_file_name);
+		System.out.println("Range Register Bit Width: " + range_bit_width);
+		
 		FileInputStream fis = new FileInputStream(input_file_name);
 
-		int next_byte = fis.read();		
 		int[] symbol_counts = new int[256];
 
 		int num_symbols = 0;
+		int next_byte = fis.read();		
+
 		while (next_byte != -1) {
 			symbol_counts[next_byte]++;
 			num_symbols++;
+
 			next_byte = fis.read();
 		}
 		fis.close();
@@ -48,37 +54,16 @@ public class ACEncodeTextFile {
 		bit_sink.write(range_bit_width, 8);
 
 		fis = new FileInputStream(input_file_name);
-
-		Scanner s = new Scanner(System.in);
-		boolean stepping = true;
-		int step_skip = 0;
-
-		int num_bits_emitted = 0;
 		for (int i=0; i<num_symbols; i++) {
 			int next_symbol = fis.read();
-
-			if (stepping) {
-				if (step_skip > 0) {
-					step_skip--;
-				}
-
-				if ((step_skip == 0) && s.hasNext()) {
-					if (s.hasNextInt()) {
-						step_skip = s.nextInt();
-					} else {
-						String cmd = s.next();
-						if (cmd.equals("go")) {
-							stepping = false;
-						}
-					}
-				}
-
-			}
+			encoder.encode(next_symbol, bit_sink);
 		}
 		fis.close();
 
 		encoder.emitMiddle(bit_sink);
 		bit_sink.padToWord();
 		fos.close();
+		
+		System.out.println("Done");
 	}
 }

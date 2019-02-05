@@ -35,8 +35,6 @@ public class ACDecodeTextFile {
 
 		int num_symbols = bit_source.next(32);
 
-		System.out.println("File has " + num_symbols + " symbols encoded");
-
 		// Read in range bit width and setup the decoder
 
 		int range_bit_width = bit_source.next(8);
@@ -51,10 +49,6 @@ public class ACDecodeTextFile {
 			// s.next();
 			int sym = decoder.decode(bit_source);
 			fos.write(sym);
-			
-			if (i%10000 == 0) {
-				System.out.println("After " + i + " symbols, consumed " + decoder.getBitsConsumed());
-			}
 		}
 
 		fos.flush();
