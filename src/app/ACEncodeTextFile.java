@@ -35,9 +35,8 @@ public class ACEncodeTextFile {
 		}
 
 		FreqCountIntegerSymbolModel model = new FreqCountIntegerSymbolModel(symbols, symbol_counts);
-		System.out.println(model.cdfTable());
 
-		ArithmeticEncoder<Integer> encoder = new ArithmeticEncoder<Integer>(model, range_bit_width, true);
+		ArithmeticEncoder<Integer> encoder = new ArithmeticEncoder<Integer>(model, range_bit_width);
 
 		FileOutputStream fos = new FileOutputStream(output_file_name);
 		OutputStreamBitSink bit_sink = new OutputStreamBitSink(fos);
@@ -75,15 +74,8 @@ public class ACEncodeTextFile {
 				}
 
 			}
-
-			num_bits_emitted += encoder.encode(next_symbol, bit_sink);
-			if (i%10000 == 0) {
-				System.out.println("After " + i + " symbols, emitted " + num_bits_emitted);
-			}
 		}
 		fis.close();
-
-		System.out.println("After " + num_symbols + " symbols, emitted " + num_bits_emitted);		
 
 		encoder.emitMiddle(bit_sink);
 		bit_sink.padToWord();

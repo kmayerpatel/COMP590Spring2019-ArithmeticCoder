@@ -30,7 +30,6 @@ public class ACDecodeTextFile {
 		}
 
 		FreqCountIntegerSymbolModel model = new FreqCountIntegerSymbolModel(symbols, symbol_counts);
-		System.out.println(model.cdfTable());
 		
 		// Read in number of symbols encoded
 

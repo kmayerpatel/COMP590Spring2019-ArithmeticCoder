@@ -5,103 +5,65 @@ import java.io.IOException;
 import io.BitSink;
 
 public class ArithmeticEncoder<T> {
+
 	private SourceModel<T> _model;
+	private int _range_bit_width;
 	private long _low;
 	private long _high;
-	private int _pending;
-	private int _range_bit_width;
 	private long _range_mask;
-	private boolean _tracing;
-
-	public ArithmeticEncoder(SourceModel<T> model, int rangeBitWidth) {
-		this(model, rangeBitWidth, false);
-	}
+	private long _one_quarter_mark;
+	private long _three_quarter_mark;
+	private int _pending_bits;
 	
-	public ArithmeticEncoder(SourceModel<T> model, int rangeBitWidth, boolean tracing) {
+	public ArithmeticEncoder(SourceModel<T> model, int rangeBitWidth) {
 		assert rangeBitWidth < 63;
 		assert model != null;
 		
-		_range_bit_width = rangeBitWidth;
 		_model = model;
-		_low = 0;
-		_high = (0x1L << rangeBitWidth) - 1L;
-		_pending = 0;
-		_range_mask = ~(0xffffffffffffffffL << _range_bit_width);
-		_tracing = tracing;
-	}
+		_range_bit_width = rangeBitWidth;
 	
-	public int encode(T symbol, BitSink bitSink) throws IOException {
-		int num_bits_emitted = 0;
-		long range_width =  _high - _low + 1;
+		_low = 0x0L;
+		_high = (0x1L << _range_bit_width) - 1L;
+		
+		_range_mask = ~(0xffffffffffffffffL << _range_bit_width);
+		
+		_one_quarter_mark = (0x1L << _range_bit_width) / 4L;
+		_three_quarter_mark = _one_quarter_mark * 3;
+		
+		_pending_bits = 0;
+	}
 
-		long old_low = _low;
+	public void encode(T symbol, BitSink bit_sink) throws IOException {
+		long range_width = _high - _low + 1;
 		
-		_low = old_low + ((long) (range_width * _model.cdfLow(symbol)));
-		_high = old_low + ((long) (range_width * _model.cdfHigh(symbol))) -1L; 
+		long new_low = _low + ((long) (range_width * _model.cdfLow(symbol)));
+		long new_high = _low + ((long) (range_width * _model.cdfHigh(symbol))) - 1L;
+
+		assert new_high >= new_low;
 		
-		assert _high > _low;
-		
-		// While top bit matches, emit bits
+		_low = new_low;
+		_high = new_high;
 		
 		while (highBit(_low) == highBit(_high)) {
-			int high_bit = highBit(_low);
-			bitSink.write(high_bit, 1);
-			num_bits_emitted++;
+			bit_sink.write(highBit(_low), 1);
 			
-			// Write out pending bits if we have any.
-			
-			while (_pending > 0) {
-				bitSink.write(1-high_bit, 1);
-				num_bits_emitted++;
-				_pending--;
+			while(_pending_bits > 0) {
+				bit_sink.write(1-highBit(_low), 1);
+				_pending_bits--;
 			}
-
-			// Shift low and high
 			
 			_low = (_low << 1) & _range_mask;
-			_high =((_high << 1) | 0x1L) & _range_mask;
+			_high = ((_high << 1) & _range_mask) | 0x1L;
 		}
 		
-		// Are we in the middle?	
-		long one_quarter_mark = (0x1L << _range_bit_width) / 4L;
-		long three_quarter_mark = one_quarter_mark * 3L;
-		
-		while (_low > three_quarter_mark && _high < one_quarter_mark) {
-			// Yes, so shift out the second highest bit and accumulate pending bits
+		while(_high < _three_quarter_mark && _low > _one_quarter_mark) {
+			_low = (_low & (_range_mask >> 2)) << 1;
+			_high = ((_high & (_range_mask >> 2)) << 1) |   // Shift all but top two over by 1
+					0x1L | 									// Make bottom bit 1
+					(0x1L << (_range_bit_width -1));		// Restore the 1 on top
 
-			// We know that:
-			// _low must be in form  01xxxx...
-			// _high must be in form 10xxxx...
-			//
-			// To shift out the second bit, we'll mask out everything but the top two bits
-			// (i.e., the xxxx... part of above) and shift it over by 1 and then fix up the
-			// top bit and low order bit as follows:
-			// 
-			// _low needs its top bit to remain 0 and new low order bit to be 0
-			// _high needs its top bit to remain 1 and new low order bit to be 1
-
-			
-			_low = ((_low & (_range_mask>>2)) << 1);		  // Mask out all but top two bits and shift left one.
-															  // 0 comes in bottom as part of shift left.
-															  // Top bit still 0 after the mask as before.
-			
-
-			_high = ((_high & (_range_mask>>2)) << 1) |       // Mask out all but top two bits and shift left one
-					0x1L | 									  // Shift in 1 at the bottom.
-					(0x1L << (_range_bit_width-1));			  // Restore top bit to be a 1
-			
-			// Accumulate pending bits
-			_pending++;
-			
-		}
-
-		if (_tracing) {
-			System.out.println("Encoded: " + symbol.toString());
-			System.out.println("   High: " + String.format("%16x", _high));
-			System.out.println("    Low: " + String.format("%16x", _low));
-			System.out.println("Emitted: " + num_bits_emitted);
-		}
-		return num_bits_emitted;
+			_pending_bits++;
+		}		
 	}
 	
 	public void emitMiddle(BitSink bitSink) throws IOException {
@@ -113,5 +75,6 @@ public class ArithmeticEncoder<T> {
 	
 	private int highBit(long value) {
 		return (int) ((value >> (_range_bit_width-1)) & 0x1L);
-	}	
+	}
+	
 }
