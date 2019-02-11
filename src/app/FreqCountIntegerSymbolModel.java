@@ -10,10 +10,16 @@ public class FreqCountIntegerSymbolModel implements SourceModel<Integer> {
 	
 	public FreqCountIntegerSymbolModel(Integer[] symbols, int[] counts) {
 		assert symbols != null;
-		assert counts != null;
-		assert symbols.length == counts.length;
 		assert symbols.length > 1;
-		
+		if (counts != null) {
+			assert symbols.length == counts.length;			
+		} else {
+			counts = new int[symbols.length];			
+			for (int i=0; i<counts.length; i++) {
+				counts[i] = 1;
+			}
+		}
+
 		_total_count = 0;
 		for (int i=0; i<symbols.length; i++) {
 			assert symbols[i] != null;
@@ -25,6 +31,15 @@ public class FreqCountIntegerSymbolModel implements SourceModel<Integer> {
 		_counts = counts.clone();
 	}
 	
+	public FreqCountIntegerSymbolModel(Integer[] symbols) {
+		this(symbols, null);
+	}
+	
+	public void addToCount(int symbol) {
+		_counts[symbol]++;
+		_total_count++;
+	}
+
 	@Override
 	public int size() {
 		return _symbols.length;

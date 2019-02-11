@@ -9,10 +9,10 @@ import ac.ArithmeticDecoder;
 import io.InputStreamBitSource;
 import io.InsufficientBitsLeftException;
 
-public class ACDecodeTextFile {
+public class StaticACDecodeTextFile {
 
 	public static void main(String[] args) throws InsufficientBitsLeftException, IOException {
-		String input_file_name = "data/compressed.dat";
+		String input_file_name = "data/static-compressed.dat";
 		String output_file_name = "data/reuncompressed.txt";
 
 		FileInputStream fis = new FileInputStream(input_file_name);
@@ -29,7 +29,8 @@ public class ACDecodeTextFile {
 			symbols[i] = i;
 		}
 
-		FreqCountIntegerSymbolModel model = new FreqCountIntegerSymbolModel(symbols, symbol_counts);
+		FreqCountIntegerSymbolModel model = 
+				new FreqCountIntegerSymbolModel(symbols, symbol_counts);
 		
 		// Read in number of symbols encoded
 
@@ -38,19 +39,23 @@ public class ACDecodeTextFile {
 		// Read in range bit width and setup the decoder
 
 		int range_bit_width = bit_source.next(8);
-		ArithmeticDecoder<Integer> decoder = new ArithmeticDecoder<Integer>(model, range_bit_width);
+		ArithmeticDecoder<Integer> decoder = new ArithmeticDecoder<Integer>(range_bit_width);
 
 		// Decode and produce output.
 		
+		System.out.println("Uncompressing file: " + input_file_name);
+		System.out.println("Output file: " + output_file_name);
+		System.out.println("Range Register Bit Width: " + range_bit_width);
+		System.out.println("Number of symbols: " + num_symbols);
+		
 		FileOutputStream fos = new FileOutputStream(output_file_name);
 
-		// Scanner s = new Scanner(System.in);
 		for (int i=0; i<num_symbols; i++) {
-			// s.next();
-			int sym = decoder.decode(bit_source);
+			int sym = decoder.decode(model, bit_source);
 			fos.write(sym);
 		}
 
+		System.out.println("Done.");
 		fos.flush();
 		fos.close();
 		fis.close();

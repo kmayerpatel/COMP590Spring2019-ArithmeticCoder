@@ -6,7 +6,6 @@ import io.BitSink;
 
 public class ArithmeticEncoder<T> {
 
-	private SourceModel<T> _model;
 	private int _range_bit_width;
 	private long _low;
 	private long _high;
@@ -15,11 +14,9 @@ public class ArithmeticEncoder<T> {
 	private long _three_quarter_mark;
 	private int _pending_bits;
 	
-	public ArithmeticEncoder(SourceModel<T> model, int rangeBitWidth) {
+	public ArithmeticEncoder(int rangeBitWidth) {
 		assert rangeBitWidth < 63;
-		assert model != null;
 		
-		_model = model;
 		_range_bit_width = rangeBitWidth;
 	
 		_low = 0x0L;
@@ -33,11 +30,11 @@ public class ArithmeticEncoder<T> {
 		_pending_bits = 0;
 	}
 
-	public void encode(T symbol, BitSink bit_sink) throws IOException {
+	public void encode(T symbol, SourceModel<T> model, BitSink bit_sink) throws IOException {
 		long range_width = _high - _low + 1;
 		
-		long new_low = _low + ((long) (range_width * _model.cdfLow(symbol)));
-		long new_high = _low + ((long) (range_width * _model.cdfHigh(symbol))) - 1L;
+		long new_low = _low + ((long) (range_width * model.cdfLow(symbol)));
+		long new_high = _low + ((long) (range_width * model.cdfHigh(symbol))) - 1L;
 
 		assert new_high >= new_low;
 		
