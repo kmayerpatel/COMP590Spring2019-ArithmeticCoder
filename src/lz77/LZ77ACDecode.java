@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 import ac.ArithmeticDecoder;
+import ac.BinarySearchArithmeticDecoder;
 import app.FreqCountIntegerSymbolModel;
 import io.InputStreamBitSource;
 import io.InsufficientBitsLeftException;
